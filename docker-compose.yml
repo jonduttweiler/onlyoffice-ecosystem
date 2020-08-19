@@ -1,5 +1,14 @@
 version: '3'
 services:
+  nginx: 
+    container_name: nginx
+    image: jduttweiler/nginx
+    volumes:
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+    networks:
+      - onlyoffice
+    ports: 
+      - '8080:80'
   document-server:
     container_name: document-server
     image: onlyoffice/documentserver:5.5.3.39
