@@ -1,0 +1,68 @@
+version: '3'
+services:
+  document-server:
+    container_name: document-server
+    image: onlyoffice/documentserver:5.5.3.39
+    networks:
+      - onlyoffice
+    extra_hosts:  
+      - "jduttweiler.storageservice.com:${LOCAL_IP}"
+    ports:
+      - '8082:80'
+    expose:
+      - '80'
+      - '443'
+    volumes:
+       - ./documentserver/nginx/includes/ds-docservice.conf:/etc/onlyoffice/documentserver/nginx/includes/ds-docservice.conf
+       - ./documentserver/nginx/includes/ds-spellchecker.conf:/etc/onlyoffice/documentserver/nginx/includes/ds-spellchecker.conf
+       - ./documentserver/web-apps/apps/api/documents/api.js:/var/www/onlyoffice/documentserver/web-apps/apps/api/documents/api.js
+       - ./documentserver/web-apps/apps/documenteditor/main/app.js:/var/www/onlyoffice/documentserver/web-apps/apps/documenteditor/main/app.js
+       - document_data:/var/www/onlyoffice/Data
+       - document_log:/var/log/onlyoffice
+       - document_forgotten:/var/lib/onlyoffice/documentserver/App_Data/cache/files/forgotten
+       
+  storage-service:
+    container_name: storage-service
+    image: jduttweiler/onlyoffice-storage:0.0.13
+    networks: 
+      - onlyoffice
+    ports:
+      - "8083:8083"
+    extra_hosts:
+      - "jduttweiler.documentserver.com:${LOCAL_IP}"
+      - "jduttweiler.storageservice.com:${LOCAL_IP}"
+    environment: 
+      - APP_PORT=8083
+      - DOCUMENT_SERVER_URL=${DOCUMENT_SERVER_URL}
+      - STORAGE_EXTERNAL_URL=${STORAGE_SERVER_URL}
+      - STORAGE_ROOT_DIRECTORY=/var/lib/documents
+      - STORAGE_USE_MULTITHREAD=false
+    volumes: 
+      - /home/jduttweiler/storage-service/files:/var/lib/documents
+      - /home/jduttweiler/storage-service/app:/usr/src/app
+
+  storage-inspector:
+    container_name: storage-inspector
+    image: jduttweiler/storage-inspector:0.0.3
+    ports:
+      - "3000:3000"
+    networks:
+      - onlyoffice
+    extra_hosts:
+      - "jduttweiler.documentserver.com:${LOCAL_IP}"
+      - "jduttweiler.storageservice.com:${LOCAL_IP}"
+    environment: 
+      - STORAGE_INSPECTOR_URL=http://${LOCAL_IP}:3000
+      - DOCUMENT_SERVER_URL=${DOCUMENT_SERVER_URL}
+      - DOCUMENT_STORAGE_URL=${STORAGE_SERVER_URL}
+
+    
+networks:
+  onlyoffice:
+    driver: 'bridge'
+volumes:
+  document_data:
+  document_log:
+  document_forgotten:
+  #documents_storage:
+ 
