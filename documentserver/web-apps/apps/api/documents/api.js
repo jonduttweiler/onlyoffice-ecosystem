@@ -10,7 +10,7 @@
     const FULL_VERSION = "5.3.3-39";
     console.log(`%c[${new Date().toISOString()}] [Document Server] Onlyoffice API v${VERSION} loaded`,"color:#ADE899;font-weight:600;");
 
-    const DEFAULT_DOCUMENT_SERVER = "http://jduttweiler.documentserver.com/quux";
+    const DEFAULT_DOCUMENT_SERVER = "http://document-server.jduttweiler.com/quux";
 
 
     /*
