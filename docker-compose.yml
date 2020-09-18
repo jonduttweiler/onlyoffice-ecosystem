@@ -1,21 +1,22 @@
 version: '3'
 services:
-  nginx: 
-    container_name: nginx
-    image: jduttweiler/nginx
-    volumes:
-      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
-    networks:
-      - onlyoffice
-    ports: 
-      - '8080:80'
+  #nginx: 
+  #  container_name: nginx
+  #  image: jduttweiler/nginx
+  #  volumes:
+  #    - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+  #  networks:
+  #    - onlyoffice
+  #  ports: 
+  #    - '8080:80'
   document-server:
     container_name: document-server
     image: onlyoffice/documentserver:5.5.3.39
+    restart: "always"
     networks:
       - onlyoffice
     extra_hosts:  
-      - "jduttweiler.storageservice.com:${LOCAL_IP}"
+      - "storage-service.jduttweiler.com:${LOCAL_IP}"
     ports:
       - '8082:80'
     expose:
@@ -25,27 +26,27 @@ services:
        - ./documentserver/nginx/includes/ds-docservice.conf:/etc/onlyoffice/documentserver/nginx/includes/ds-docservice.conf
        - ./documentserver/nginx/includes/ds-spellchecker.conf:/etc/onlyoffice/documentserver/nginx/includes/ds-spellchecker.conf
        - ./documentserver/web-apps/apps/api/documents/api.js:/var/www/onlyoffice/documentserver/web-apps/apps/api/documents/api.js
-       - ./documentserver/web-apps/apps/documenteditor/main/app.js:/var/www/onlyoffice/documentserver/web-apps/apps/documenteditor/main/app.js
        - document_data:/var/www/onlyoffice/Data
        - document_log:/var/log/onlyoffice
        - document_forgotten:/var/lib/onlyoffice/documentserver/App_Data/cache/files/forgotten
        
   storage-service:
     container_name: storage-service
-    image: jduttweiler/onlyoffice-storage:0.0.13
+    image: jduttweiler/onlyoffice-storage:0.0.15
     networks: 
       - onlyoffice
     ports:
       - "8083:8083"
     extra_hosts:
-      - "jduttweiler.documentserver.com:${LOCAL_IP}"
-      - "jduttweiler.storageservice.com:${LOCAL_IP}"
+      - "document-server.jduttweiler.com:${LOCAL_IP}"
+      - "storage-service.jduttweiler.com:${LOCAL_IP}"
     environment: 
       - APP_PORT=8083
       - DOCUMENT_SERVER_URL=${DOCUMENT_SERVER_URL}
       - STORAGE_EXTERNAL_URL=${STORAGE_SERVER_URL}
       - STORAGE_ROOT_DIRECTORY=/var/lib/documents
       - STORAGE_USE_MULTITHREAD=false
+      - DOCUMENT_SERVER_COMMAND_URL=${DOCUMENT_SERVER_COMMAND_URL}
     volumes: 
       - /home/jduttweiler/storage-service/files:/var/lib/documents
       - /home/jduttweiler/storage-service/app:/usr/src/app
@@ -58,8 +59,10 @@ services:
     networks:
       - onlyoffice
     extra_hosts:
-      - "jduttweiler.documentserver.com:${LOCAL_IP}"
-      - "jduttweiler.storageservice.com:${LOCAL_IP}"
+      - "document-server.jduttweiler.com:${LOCAL_IP}"
+      - "storage-service.jduttweiler.com:${LOCAL_IP}"
+    volumes:
+      - /home/jduttweiler/storage-inspector/app:/usr/src/app
     environment: 
       - STORAGE_INSPECTOR_URL=http://${LOCAL_IP}:3000
       - DOCUMENT_SERVER_URL=${DOCUMENT_SERVER_URL}
