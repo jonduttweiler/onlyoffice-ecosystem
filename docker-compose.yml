@@ -32,7 +32,7 @@ services:
        
   storage-service:
     container_name: storage-service
-    image: jduttweiler/onlyoffice-storage:0.0.15
+    image: jduttweiler/onlyoffice-storage:0.0.18
     networks: 
       - onlyoffice
     ports:
